@@ -25,9 +25,9 @@ vertices_atingidos = []
 for i in range(n_vertices):
     vertices_atingidos.append(0)
 
-def verifica_alcance_vertices():
-    for i in range(len(s0)):
-        if s0[i]:
+def verifica_alcance_vertices(solution):
+    for i in range(len(solution)):
+        if solution[i]:
             for j in arestas:
                 if j[2] == i:
                     vertices_atingidos[j[0]] = 1
@@ -80,8 +80,8 @@ def melhores_candidatos(lista,alpha):
                 break
     return posicao_max
 
-def greed_randomized_solution(alpha):
-    while(verifica_alcance_vertices() == 0):
+def greed_randomized_solution(solucao_atual,alpha):
+    while(verifica_alcance_vertices(solucao_atual) == 0):
         rcl = melhores_candidatos(quantos_vertices_rotulo_atinge(),alpha)  #Restricted Candidate List
         rotulo_escolhido = random.choice(rcl)
         print('rotulo adicionado = ', rotulo_escolhido)
@@ -89,16 +89,46 @@ def greed_randomized_solution(alpha):
         print(s0)
     return s0
 
-print(s0)
-test_g_r_s = greed_randomized_solution(30)
+# test_g_r_s = greed_randomized_solution(s0,30)
 # print(test_g_r_s)
-#
-# def grasp(s0,alpha):
-#     solucao_atual = s0
-#     do:
-#         nova_solucao = greed_randomized_solution(alpha)
-#         nova_solucao = busca_local(nova_solucao)
-#         if( f(nova_solucao) < f(solucao_atual)):
-#             solucao_atual = nova_solucao
-#     until a stop criterion is satisfied
-#     return s
+
+def gera_vizinhos(solution):
+    vizinhos = []
+    copy_solution = solution.copy()
+    for i in range(len(copy_solution)):
+        if copy_solution[i] == 1:
+            copy_solution[i] = 0
+            if verifica_alcance_vertices(copy_solution):
+                vizinhos.append(copy_solution)
+            copy_solution[i] = 1
+    if len(vizinhos) == 0:
+        return solution
+    else:
+        return vizinhos
+
+def busca_local(solution):
+    vizinhos = gera_vizinhos(solution)
+    if vizinhos[0] is int:
+        return vizinhos
+    else:
+        return random.choice(vizinhos)
+
+def n_rotulos_usados(solution):
+    count = 0
+    for i in range(len(solution)):
+        if solution[i] == 1:
+            count +=1
+    return count
+
+
+def grasp(s0,alpha):
+    solucao_atual = s0
+    iterations = 0
+    while iterations < 20:
+        nova_solucao = greed_randomized_solution(solucao_atual,alpha)
+        nova_solucao = busca_local(nova_solucao)
+        if( n_rotulos_usados(nova_solucao) < n_rotulos_usados(solucao_atual)):
+            print("solucao atualizada")
+            solucao_atual = nova_solucao
+    iterations+=1
+    return solucao_atual
