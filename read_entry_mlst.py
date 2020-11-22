@@ -26,6 +26,9 @@ for i in range(n_vertices):
     vertices_atingidos.append(0)
 
 def verifica_alcance_vertices(solution):
+    for i in range(len(vertices_atingidos)):
+        vertices_atingidos[i] = 0
+
     for i in range(len(solution)):
         if solution[i]:
             for j in arestas:
@@ -38,12 +41,12 @@ def verifica_alcance_vertices(solution):
         return 1
 
 # s0[0] = 1
-# s0[1] = 1
+# s0[1] = 0
 # s0[2] = 1
 # s0[3] = 1
 # s0[4] = 1
-
-# alcanca_todos = verifica_alcance_vertices()
+#
+# alcanca_todos = verifica_alcance_vertices(s0)
 # print("vertice i atingido ?")
 # for i in range(len(vertices_atingidos)):
 #     print('vertice ', i, ' = ', vertices_atingidos[i])
@@ -85,33 +88,40 @@ def greed_randomized_solution(solucao_atual,alpha):
         rcl = melhores_candidatos(quantos_vertices_rotulo_atinge(),alpha)  #Restricted Candidate List
         rotulo_escolhido = random.choice(rcl)
         print('rotulo adicionado = ', rotulo_escolhido)
-        s0[rotulo_escolhido] = 1
-        print(s0)
-    return s0
+        solucao_atual[rotulo_escolhido] = 1
+        print(solucao_atual)
+    return solucao_atual
 
+# print(s0)
 # test_g_r_s = greed_randomized_solution(s0,30)
 # print(test_g_r_s)
 
 def gera_vizinhos(solution):
     vizinhos = []
-    copy_solution = solution.copy()
-    for i in range(len(copy_solution)):
-        if copy_solution[i] == 1:
+    for i in range(len(solution)):
+        if solution[i] == 1:
+            copy_solution = solution.copy()
             copy_solution[i] = 0
             if verifica_alcance_vertices(copy_solution):
                 vizinhos.append(copy_solution)
-            copy_solution[i] = 1
     if len(vizinhos) == 0:
         return solution
     else:
         return vizinhos
 
+# test_vizinhos = gera_vizinhos([1,1,1,1,1])
+# print(test_vizinhos)
+
 def busca_local(solution):
     vizinhos = gera_vizinhos(solution)
-    if vizinhos[0] is int:
+    print('vizinhos =',vizinhos)
+    if type(vizinhos[0]) is int:
         return vizinhos
     else:
-        return random.choice(vizinhos)
+        return vizinhos[random.choice(range(len(vizinhos)))]
+
+# test_busca_local = busca_local([1,1,1,1,1])
+# print(test_busca_local)
 
 def n_rotulos_usados(solution):
     count = 0
@@ -120,15 +130,27 @@ def n_rotulos_usados(solution):
             count +=1
     return count
 
+# test_rotulos = n_rotulos_usados(s0)
+# print(test_rotulos)
 
 def grasp(s0,alpha):
     solucao_atual = s0
     iterations = 0
     while iterations < 20:
+        print('iteracao = ',iterations)
         nova_solucao = greed_randomized_solution(solucao_atual,alpha)
         nova_solucao = busca_local(nova_solucao)
-        if( n_rotulos_usados(nova_solucao) < n_rotulos_usados(solucao_atual)):
+        if solucao_atual == nova_solucao:
+            iterations = 19
+        elif n_rotulos_usados(solucao_atual) == 0:
+            solucao_atual = nova_solucao
+        elif( n_rotulos_usados(nova_solucao) < n_rotulos_usados(solucao_atual)):
             print("solucao atualizada")
             solucao_atual = nova_solucao
-    iterations+=1
+        iterations+=1
     return solucao_atual
+
+test_solucao = grasp(s0,30)
+print('melhor solucao encontrada = ',test_solucao)
+print('BKS = ',n_rotulos_usados(test_solucao))
+print(verifica_alcance_vertices(test_solucao))
