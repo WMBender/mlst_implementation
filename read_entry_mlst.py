@@ -1,15 +1,19 @@
 import sys
 from numpy import random
 
-arestas = []
-
 with open(sys.argv[1], 'r') as f:
     content = f.readlines()
     first_line = content[0].split()
 
+seed = int(sys.argv[2])
+random.seed(seed)
+print('seed value = ',seed)
+
 n_vertices = int(first_line[0])
 n_arestas = int(first_line[1])
 n_rotulos = int(first_line[2])
+
+arestas = []
 
 for i in range(1, len(content)):
     split_line = content[i].split()
@@ -102,8 +106,10 @@ def gera_vizinhos(solution):
         if solution[i] == 1:
             copy_solution = solution.copy()
             copy_solution[i] = 0
+            print('copy',copy_solution)
             if verifica_alcance_vertices(copy_solution):
                 vizinhos.append(copy_solution)
+                print(copy_solution)
     if len(vizinhos) == 0:
         return solution
     else:
@@ -114,10 +120,10 @@ def gera_vizinhos(solution):
 
 def busca_local(solution):
     vizinhos = gera_vizinhos(solution)
-    print('vizinhos =',vizinhos)
     if type(vizinhos[0]) is int:
         return vizinhos
     else:
+        print('vizinhos =', vizinhos)
         return vizinhos[random.choice(range(len(vizinhos)))]
 
 # test_busca_local = busca_local([1,1,1,1,1])
