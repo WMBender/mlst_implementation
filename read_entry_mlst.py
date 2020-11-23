@@ -1,5 +1,8 @@
 import sys
+import time
 from numpy import random
+
+start_time = time.time()
 
 with open(sys.argv[1], 'r') as f:
     content = f.readlines()
@@ -15,7 +18,7 @@ n_rotulos = int(first_line[2])
 
 arestas = []
 
-for i in range(1, len(content)):
+for i in range(2, len(content)):
     split_line = content[i].split()
     arestas.append((int(split_line[0]), int(split_line[1]), int(split_line[2])))
 
@@ -36,24 +39,23 @@ def verifica_alcance_vertices(solution):
     for i in range(len(solution)):
         if solution[i]:
             for j in arestas:
-                if j[2] == i:
-                    vertices_atingidos[j[0]] = 1
-                    vertices_atingidos[j[1]] = 1
+                if j[2] == i+1:
+                    vertices_atingidos[j[0]-1] = 1
+                    vertices_atingidos[j[1]-1] = 1
     if 0 in vertices_atingidos:
         return 0
     else:
         return 1
 
-# s0[0] = 1
+# s0[0] = 0
 # s0[1] = 0
-# s0[2] = 1
+# s0[2] = 0
 # s0[3] = 1
-# s0[4] = 1
-#
+# s0[4] = 0
 # alcanca_todos = verifica_alcance_vertices(s0)
 # print("vertice i atingido ?")
 # for i in range(len(vertices_atingidos)):
-#     print('vertice ', i, ' = ', vertices_atingidos[i])
+#     print('vertice ', i+1, ' = ', vertices_atingidos[i])
 #
 # print("alcança todos ?", alcanca_todos)
 
@@ -62,14 +64,16 @@ def quantos_vertices_rotulo_atinge():
     for i in range(n_rotulos):
         new_vertices_atingidos = []
         for j in arestas:
-            if (j[2] == i):
-                if(vertices_atingidos[j[0]] == 0):
-                    new_vertices_atingidos.append(j[0])
-                if (vertices_atingidos[j[1]] == 0):
-                    new_vertices_atingidos.append(j[1])
+            if s0[i] == 0:
+                if (j[2] == i+1):
+                    if(vertices_atingidos[j[0]-1] == 0):
+                        new_vertices_atingidos.append(j[0])
+                    if (vertices_atingidos[j[1]-1] == 0):
+                        new_vertices_atingidos.append(j[1])
         new_rotulos.append(len(set(new_vertices_atingidos)))
     return new_rotulos
 
+# verifica_alcance_vertices(s0)
 # vertices_por_rotulo = quantos_vertices_rotulo_atinge()
 # print(vertices_por_rotulo)
 
@@ -81,7 +85,8 @@ def melhores_candidatos(lista,alpha):
         for i in range(len(lista)):
             max_list = max(lista)
             if (max_list == lista[i]):
-                posicao_max.append(i)
+                if max_list != 0:
+                    posicao_max.append(i)
                 lista[i] = 0
                 n_melhores -= 1
                 break
@@ -91,7 +96,7 @@ def greed_randomized_solution(solucao_atual,alpha):
     while(verifica_alcance_vertices(solucao_atual) == 0):
         rcl = melhores_candidatos(quantos_vertices_rotulo_atinge(),alpha)  #Restricted Candidate List
         rotulo_escolhido = random.choice(rcl)
-        print('rotulo adicionado = ', rotulo_escolhido)
+        print('rotulo adicionado = ', rotulo_escolhido+1)
         solucao_atual[rotulo_escolhido] = 1
         print(solucao_atual)
     return solucao_atual
@@ -106,7 +111,7 @@ def gera_vizinhos(solution):
         if solution[i] == 1:
             copy_solution = solution.copy()
             copy_solution[i] = 0
-            print('copy',copy_solution)
+            # print('copy',copy_solution)
             if verifica_alcance_vertices(copy_solution):
                 vizinhos.append(copy_solution)
                 print(copy_solution)
@@ -145,6 +150,7 @@ def grasp(s0,alpha):
     while iterations < 20:
         print('iteracao = ',iterations)
         nova_solucao = greed_randomized_solution(solucao_atual,alpha)
+        print('BKS inicial = ',n_rotulos_usados(solucao_atual))
         nova_solucao = busca_local(nova_solucao)
         if solucao_atual == nova_solucao:
             iterations = 19
@@ -160,3 +166,5 @@ test_solucao = grasp(s0,30)
 print('melhor solucao encontrada = ',test_solucao)
 print('BKS = ',n_rotulos_usados(test_solucao))
 print(verifica_alcance_vertices(test_solucao))
+print("%s seconds " % (time.time() - start_time))
+# print("s0 = ",s0)
